@@ -1,12 +1,12 @@
 
-const getTodos = async () => {
-    let response = await fetch('https://jsonplaceholder.typicode.com/todos/');
+const getData = async (url) => {
+    let response = await fetch(url);
     let json = await response.json();
-    return json
+    return json 
 }
 
 const renderPage = async () => {
-    let todos = await getTodos();
+    let todos = await getData('https://jsonplaceholder.typicode.com/todos/')
 
     let latestId = 0;
     let ul;
@@ -38,4 +38,86 @@ const renderPage = async () => {
     });
 }
 
-renderPage();
+// renderPage();
+
+//Uppgift 2
+
+let getProfilesBtn = document.querySelector("#getProfiles");
+
+getProfilesBtn.addEventListener("click", async () => {
+    let profiles = await getData('https://jsonplaceholder.typicode.com/users/')
+    console.log(profiles);
+
+    let ul = document.querySelector("#profiles");
+
+    profiles.forEach(profile => {
+        ul.innerHTML += `
+            <li>
+                <p><strong>Name:</strong>${profile.name}</p>
+                <p><strong>Email:</strong>${profile.email}</p>
+                <p><strong>Adress:</strong>${profile.address.street}, ${profile.address.city}</p>
+                <p><strong>Company:</strong>${profile.company.name} - ${profile.company.bs}</p>
+            </li>
+        `
+    })
+})
+
+//Uppgift 3
+
+let renderProfiles = async () => {
+    let profiles = await getData("https://jsonplaceholder.typicode.com/users");
+    console.log(profiles);
+    let ul = document.querySelector("#profiles-2");
+
+    profiles.forEach(profile => {
+        let li = document.createElement("li");
+        li.innerText = profile.name;
+
+        //buttons
+        let showInfoBtn = document.createElement("button");
+        showInfoBtn.innerText = "Show info";
+        showInfoBtn.addEventListener("click", async () => {
+
+            let allProfiles = document.querySelectorAll("ul li div");
+
+            allProfiles.forEach(info => {
+                info.innerHTML = "";
+            })
+
+            let userPosts = await getData("https://jsonplaceholder.typicode.com/posts?userId=" + profile.id);
+            let userTodos = await getData("https://jsonplaceholder.typicode.com/todos?userId=" + profile.id);
+            console.log(userPosts, userTodos);
+
+            //det 
+            let postList = document.createElement("ul");
+            userPosts.forEach(post => {
+                postList.innerHTML += `<li>Post #${post.id}: ${post.title}</li>`
+            })
+
+            let todoList = document.createElement("ul");
+            userTodos.forEach(todo => {
+                if(!todo.completed){
+                    todoList.innerHTML += `<li>Todo #${todo.id}: ${todo.title}</li>`
+                }
+            })
+
+            let profileDiv = document.createElement("div");
+            let city = document.createElement("p");
+            city.innerText = "City: " + profile.address.city;
+            profileDiv.append(city,postList,todoList);
+            li.append(profileDiv);
+
+        })
+
+        let deleteBtn = document.createElement("button");
+        deleteBtn.innerText = "Delete"
+        deleteBtn.addEventListener("click", () => {
+            li.remove();
+        })
+
+        li.append(showInfoBtn,deleteBtn);
+        ul.append(li);
+    })
+}
+
+renderProfiles();
